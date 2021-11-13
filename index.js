@@ -4,12 +4,12 @@ const { createServer } = require('http')
 const { WebSocketServer } = require('ws')
 const bodyParser = require('body-parser');
 const cors = require('cors')
-const userConfig = require('./userconfig.js')
+const logo = require('./userconfig.js')
 const app = express()
+require('dotenv/config');
+
 
 const port = process.env.PORT || 8082;
-
-console.log(userConfig)
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -17,6 +17,18 @@ app.use(bodyParser.json());
 
 
 const access_token = '';
+
+const userConfig = {
+  appName: process.env.APP_NAME,
+  clientLogoBase64: logo,
+  ssoClientId: process.env.SS0_CLIENT_ID,
+  secretID: process.env.SSO_SECRET_ID,
+  ssoDomainCognito: process.env.SSO_COGNITO_DOMAIN,
+  ssoRedirectURL : process.env.SSO_REDIRECT_URL,
+  authInvolvesDomain: process.env.INVOLVES_AUTH_DOMAIN
+}
+
+console.log(userConfig)
 
 const endpoint = `minha-rota-do-backend/${access_token}`;
 
