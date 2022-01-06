@@ -4,9 +4,12 @@ const { createServer } = require('http')
 const { WebSocketServer } = require('ws')
 const bodyParser = require('body-parser');
 const cors = require('cors')
-const logo = require('./userconfig.js')
+const {logo, token} = require('./userconfig.js')
+const {handler} = require('./lambdaJwt')
 const app = express()
 require('dotenv/config');
+
+const axios = require('axios')
 
 
 const port = process.env.PORT || 8082;
@@ -15,37 +18,58 @@ app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-
+ 
 const access_token = '';
 
 const userConfig = {
   appName: process.env.APP_NAME,
-  clientLogoBase64: logo,
-  ssoClientId: process.env.SS0_CLIENT_ID,
-  secretID: process.env.SSO_SECRET_ID,
-  ssoDomainCognito: process.env.SSO_COGNITO_DOMAIN,
+  clientLogoBase64: 'logo',
+  ssoClientId: process.env.SSO_CLIENT_ID,
+  ssoClientSecret: process.env.SSO_SECRET_ID,
+  ssoUserPoolDomain: process.env.SSO_COGNITO_DOMAIN,
   ssoRedirectURL : process.env.SSO_REDIRECT_URL,
-  authInvolvesDomain: process.env.INVOLVES_AUTH_DOMAIN
+  authInvolvesDomain: process.env.INVOLVES_AUTH_DOMAIN,
+  ssoUserPoolId: null
 }
 
-console.log(userConfig)
+userConfig.clientLogoBase64 = logo
 
 const endpoint = `minha-rota-do-backend/${access_token}`;
+const request = async () => {
+  const region = 'us-east-1', userPoolId = '728b6c29-0d2c-4a54-86c6-c533be6b9b11'
+  try {
+    const {data} = await axios.post(`https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json
+    `);
+    return data
+  } catch (error) {
+    return error.response.data
+  }
+}
 
-app.post(endpoint, (req, res) =>{
+//handler(token).then(res => {
+//  console.log(res)
+//})
+// request()
+// .then( data => console.log('request', data))
+
+
+
+app.post(endpoint,(req, res) =>{
   res.send('Olá mundo')
 });
 
-app.post('/v1/api/token', (req, res) =>{
+app.post('/api/login', (req, res) =>{
+  console.log('/api/login')
   const tokens = {
-    accessToken: "561rcodao1pv4iaqeqd9sj85t1.561rcodao1pv4iaqeqd9sj85t1.561rcodao1pv4iaqeqd9sj85t1",
-    refreshToken: "1gfnffbfm7ofimn7p5abtjte75k3cg0929q19r49qfbnf39scm52.1gfnffbfm7ofimn7p5abtjte75k3cg0929q19r49qfbnf39scm52",
+    accessToken: token,
+    refreshToken: token,
   }
   res.json(tokens)
+  
 });
 
-app.get('/v1/api/info/customer', (req, res) =>{
-  console.log('Chegou Chamada do servidor Aqui.. 1.')
+app.get('/api/client/login-info', (req, res) =>{
+  console.log('/api/client/login-info')
   res.json(userConfig)
 });
 
